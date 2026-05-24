@@ -4,7 +4,7 @@
 
 ### Windows Performance Optimizer for AMD Ryzen + NVIDIA RTX
 
-[![Version](https://img.shields.io/badge/version-1.0.0--beta-c0392b?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-c0392b?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.0)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4?style=for-the-badge&logo=windows)](https://github.com/BrunoRap/OptiCore/releases)
 [![License](https://img.shields.io/badge/license-MIT-27ae60?style=for-the-badge)](LICENSE)
 [![Free](https://img.shields.io/badge/price-FREE-27ae60?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases)
@@ -22,16 +22,32 @@
 
 </div>
 
+## 🚀 Download
+
+**[Latest Release — OptiCore v1.0.0](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.0)**
+
+Download **`OptiCore-Setup.exe`** (157.82 MB) — professional Windows installer, completely self-contained, zero dependencies.
+
+### Quick Install
+1. Download `OptiCore-Setup.exe` from the [Releases page](https://github.com/BrunoRap/OptiCore/releases)
+2. Run the installer — select language, installation location, create desktop shortcut
+3. Launch from Start menu or desktop shortcut
+4. Hardware will auto-detect on first run
+5. Select your CPU operating mode (Stock / PBO / Fixed OC)
+6. Review and apply optimizations tailored to your system
+
+---
+
 ## 🖥️ Supported Hardware
 
 | Component | Supported |
 |-----------|-----------|
-| **CPU** | AMD Ryzen AM4 (1000–5000 series) + AM5 (7000–9000 series, including X3D) |
+| **CPU** | AMD Ryzen AM4 (1000–5000 series) + AM5 (7000–9000 series, including X3D and dual-CCD variants) |
 | **GPU** | NVIDIA RTX 20xx, 30xx, 40xx, 50xx series |
 | **OS** | Windows 10 / Windows 11 (64-bit) |
-| **RAM** | DDR4 / DDR5 (any speed) |
+| **RAM** | DDR4 / DDR5 (any speed, includes XMP/EXPO detection) |
 
-> ℹ️ Intel CPU and AMD GPU support is planned for a future release.
+> ℹ️ Intel CPU and AMD GPU support is planned for future releases.
 
 ---
 
@@ -40,81 +56,88 @@
 OptiCore detects your exact hardware configuration and applies a tailored set of optimizations — no generic one-size-fits-all tweaks.
 
 ### 🔍 Hardware Detection
-- CPU model, core count, CCD topology, L3 cache, X3D detection
-- Operating mode: **Fixed OC**, **PBO (Precision Boost Overdrive)**, or **Stock**
-- GPU model, VRAM, driver version, current MSI vector count
-- RAM capacity, speed, channel configuration
+- CPU model, core count, CCD topology (1 CCD / 2 CCD), L3 cache, X3D detection
+- **Operating mode detection:** Fixed OC, PBO (Precision Boost Overdrive), or Stock
+  * For Fixed OC: supports all-core locking OR per-CCD configuration (e.g., CCD0: 5400MHz / CCD1: 5600MHz on dual-CCD CPUs)
+  * For PBO: detects Curve Optimizer, Scalar, Max Boost Override, PPT/TDC/EDC limits
+- GPU model, VRAM, driver version, current MSI vector count, HAGS status
+- RAM capacity, speed (JEDEC + active XMP/EXPO), channel configuration
 - NIC model, interrupt moderation status
 - Connected USB peripherals (Razer, Logitech, Focusrite auto-detected)
 - TPM type (fTPM vs dTPM), Bitlocker status
-- VBS / HVCI state
+- VBS / HVCI state, power plan, driver versions
 
 ### ⚙️ Optimizations Applied
-- **Timer Resolution** — reduces system scheduler jitter from 15.6ms to 0.5ms
-- **GPU Interrupt Routing** — sets MSI mode (up to 16 vectors) and pins GPU IRQ to a dedicated CPU core
-- **Hardware Accelerated GPU Scheduling (HAGS)** — reduces GPU present latency
-- **MMCSS Games Profile** — maximizes scheduler priority for game threads
-- **NIC Latency** — disables Interrupt Moderation, EEE, Nagle's algorithm, RSC
-- **Power Management** — Ultimate Performance plan, disables P-state transitions, core parking, Power Throttling
-- **Boot Configuration** — `disabledynamictick`, TSC clock source
-- **PCIe ASPM** — disables Active State Power Management for the GPU slot
-- **XHCI Selective Suspend** — eliminates USB wake latency
-- **Background Noise** — disables 7 latency-impacting services and 8 scheduled tasks
-- **GameDVR / Game Bar** — fully disabled
-- **Razer Polling Rate Fix** — automatically sets Razer keyboards to 1000Hz via direct HID command (workaround for Razer App bug)
-- **And more** — 49 individual optimizations across all categories
+
+**49 individual optimizations across 8 categories:**
+
+| Category | Key Optimizations |
+|---|---|
+| **Scheduler & Timer** | Timer Resolution (15.6ms → 0.5ms), MMCSS Games Profile (Priority 6, High), SystemResponsiveness = 0 |
+| **GPU** | MSI Mode (up to 16 vectors), Interrupt Affinity, HAGS (Hardware Accelerated GPU Scheduling), NVIDIA Performance Lock |
+| **Network (NIC)** | Disable Interrupt Moderation, EEE, Nagle's Algorithm, RSC |
+| **Power Management** | Ultimate Performance plan, PROCTHROTTLEMIN lock (adapts to CPU mode), disable Power Throttling, disable Core Parking |
+| **Boot & Clock** | Disable Dynamic Tick (BCD), TSC Clock Source, GlobalTimerResolutionRequests |
+| **PCIe & USB** | PCIe ASPM off, XHCI Selective Suspend off |
+| **Background** | Disable 7 latency-impacting services (WSearch, SysMain, DiagTrack, CDPSvc, etc.), disable 8 scheduled maintenance tasks |
+| **Gaming** | Disable GameDVR / Game Bar, Razer keyboard polling fix (8000Hz → 1000Hz via HID command) |
 
 ### 📊 Before / After Report
-OptiCore measures your system **before and after** optimization using native Windows APIs — no third-party tools required. The report shows:
-- IRQs/second
-- DPCs/second
-- Timer resolution
-- Active services count
-- Per-optimization status
+OptiCore measures your system **before and after** optimization using native Windows APIs — no third-party tools required. The report displays:
+- IRQs/second (interrupt frequency)
+- DPCs/second (deferred procedure calls)
+- Timer resolution (actual system timer precision)
+- Running services count
+- Applied optimizations status
+- **Optimization history** — cumulative list of all previously applied optimizations with timestamps
+- Overall improvement percentage
+- Hardware configuration snapshot
 
 ### ↩️ Full Rollback Support
 Every change is backed up before being applied. You can:
-- **Restore all** changes at once
-- **Selectively restore** individual optimizations
-- Backups are stored in `%APPDATA%\OptiCore\backups\`
-
----
-
-## 🚀 Download & Install
-
-1. Go to the [**Releases**](https://github.com/BrunoRap/OptiCore/releases) page
-2. Download the latest `OptiCore-Setup.exe`
-3. Run the installer — **no additional software required**
-4. Follow the on-screen setup (language selection, welcome screen)
-5. Click **Scan System** and review the recommended optimizations
-6. Apply what you want — OptiCore never modifies anything without your knowledge
-
-> ⚠️ OptiCore requires **Administrator privileges** to apply system-level optimizations. You will be prompted by Windows UAC when needed.
+- **Restore all** changes at once with one click (revert to pre-OptiCore state)
+- **Selectively restore** individual optimizations via checkboxes
+- **View history** of all optimizations ever applied, grouped by session
+- Backups are stored in `%APPDATA%\OptiCore\backups\` with automatic cleanup
 
 ---
 
 ## 🌐 Languages
 
-OptiCore is available in:
+OptiCore is available in **5 languages** with full localization of all UI elements:
 
-| Language | Status |
-|----------|--------|
-| 🇺🇸 English | ✅ Available |
-| 🇧🇷 Portuguese (Brazil) | ✅ Available |
-| 🇪🇸 Spanish | ✅ Available |
-| 🇫🇷 French | ✅ Available |
-| 🇩🇪 German | ✅ Available |
+| Language | Code | Status |
+|----------|------|--------|
+| 🇺🇸 English | EN | ✅ Available |
+| 🇧🇷 Portuguese (Brazil) | PT-BR | ✅ Available |
+| 🇪🇸 Spanish | ES | ✅ Available |
+| 🇫🇷 French | FR | ✅ Available |
+| 🇩🇪 German | DE | ✅ Available |
+
+Language selection on splash screen, persisted to disk, changeable anytime.
 
 ---
 
 ## 🛡️ Safety & Transparency
 
-- **No data collection** — OptiCore does not send any information anywhere
+- **No data collection** — OptiCore does not send any information anywhere, ever
 - **No internet required** — works fully offline after installation
-- **Open source** — every line of code is visible in this repository
+- **Open source** — every line of code is visible in this repository (MIT license)
 - **Automatic backups** — every registry change is backed up before being applied
 - **Rollback anytime** — restore your system to its original state with one click
 - **No system files modified** — only registry keys, services, and scheduled tasks within Windows standard parameters
+- **Professional installer** — Windows-standard setup with Start menu entry, desktop shortcut, uninstaller
+
+---
+
+## 📋 System Requirements
+
+- **OS:** Windows 10 or Windows 11 (64-bit)
+- **CPU:** AMD Ryzen AM4 or AM5 socket
+- **GPU:** NVIDIA RTX 20xx or newer
+- **RAM:** 4GB minimum (8GB+ recommended)
+- **Disk space:** ~200MB (60MB app + space for backups)
+- **Dependencies:** None — completely self-contained executable
 
 ---
 
@@ -137,30 +160,32 @@ If OptiCore helped your system perform better, consider supporting its developme
 
 ---
 
-## 📋 Requirements
-
-- Windows 10 or Windows 11 (64-bit)
-- AMD Ryzen processor (AM4 or AM5 socket)
-- NVIDIA RTX 20xx or newer GPU
-- ~50MB disk space
-- No additional software or runtime required
-
----
-
 ## 🗺️ Roadmap
 
+### Version 1.0 (Current — Released)
 - [x] AMD AM4/AM5 + NVIDIA RTX support
-- [x] Fixed OC / PBO / Stock detection
-- [x] Hardware-specific optimization engine
+- [x] Fixed OC / PBO / Stock CPU mode detection
+- [x] Per-CCD Fixed OC support (dual-CCD CPU handling)
+- [x] PBO parameter detection (Curve Optimizer, Scalar, Max Boost Override, PPT/TDC/EDC)
+- [x] Hardware-specific optimization decision engine
 - [x] Before/After metrics report
-- [x] Full rollback support
+- [x] Optimization history tracking
+- [x] Full rollback support (total and selective)
 - [x] Multi-language support (EN, PT, ES, FR, DE)
+- [x] Professional Windows installer
+
+### Version 1.5 (Planned)
 - [ ] AMD GPU (RX 6000+) support
 - [ ] Intel 12th gen+ support (P-core/E-core aware)
+- [ ] GPU-specific metrics (clock speeds, power usage, thermal data)
+- [ ] Benchmark mode (automated before/after stress testing)
+
+### Version 2.0 (Future)
 - [ ] NVIDIA GTX 10xx legacy support
-- [ ] Benchmark mode (automated before/after testing)
-- [ ] Community optimization profiles
+- [ ] Community optimization profiles (user-submitted configs)
 - [ ] Auto-update system
+- [ ] System restore point integration
+- [ ] Dark mode system tray icon with quick status
 
 ---
 
@@ -178,17 +203,90 @@ Member of **Brazilian Top Team**
 
 ---
 
+## 📖 Usage Guide
+
+### First Launch
+1. App opens with splash screen (select language here)
+2. Hardware detection runs automatically
+3. Select your CPU operating mode:
+   - **Stock:** Factory default settings, no overclock
+   - **PBO:** Precision Boost Overdrive enabled (auto boost)
+   - **Fixed OC:** Manual fixed all-core (or per-CCD) overclock
+4. If Fixed OC: enter your frequency and optionally voltage
+5. Main window opens with Hardware tab showing detected configuration
+
+### Optimize Your System
+1. Go to **Optimize** tab
+2. Click **Scan System** — OptiCore analyzes your setup
+3. Review the 49 recommended optimizations
+4. Use filters: All / High Impact / Requires Reboot / Safe Only
+5. Customize by checking/unchecking individual items
+6. Click **Apply Selected** — Windows UAC prompt appears once, then all changes apply automatically
+7. View **Report** tab for metrics and applied optimizations
+
+### Validate Settings
+The **Validate** tab runs checks to confirm:
+- Timer resolution is set correctly
+- Services are disabled/enabled as configured
+- Registry keys have the correct values
+- GPU settings are optimized
+- Network settings are tuned
+
+Red/yellow indicators show what needs attention.
+
+### Rollback If Needed
+In the **Rollback** tab:
+- See all backup sessions grouped by date/time
+- Restore everything to pre-OptiCore state with one click
+- Or selectively restore individual optimizations
+
+### View History
+The **Report** tab shows:
+- Current session metrics (before/after)
+- **Optimization history** of all previously applied changes
+- Hardware configuration details
+- Export report as PDF or TXT
+
+---
+
 ## ⚖️ License
 
-OptiCore is released under the [MIT License](LICENSE).
+OptiCore is released under the **MIT License**.
 
-You are free to use, modify, and distribute this software. Attribution is appreciated but not required.
+You are free to use, modify, and distribute this software. Attribution is appreciated but not required. See [LICENSE](LICENSE) file for details.
 
 ---
 
 ## ⚠️ Disclaimer
 
-OptiCore modifies Windows registry keys, services, and scheduled tasks. While every change is backed up and fully reversible, use this software at your own risk. The author is not responsible for any system instability that may result from its use. Always ensure you have a system backup before applying optimizations.
+OptiCore modifies Windows registry keys, services, and scheduled tasks. While every change is backed up and fully reversible, use this software at your own risk. The author is not responsible for any system instability that may result from its use.
+
+**Always ensure you have a system backup before applying optimizations.**
+
+Optimizations are safe for the vast majority of systems, but individual hardware configurations vary. If your system becomes unstable after applying optimizations, use the Rollback feature to restore previous settings.
+
+---
+
+## 🔗 Links
+
+- **[Download v1.0.0](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.0)** — Get OptiCore now
+- **[Source Code](https://github.com/BrunoRap/OptiCore)** — GitHub repository
+- **[Report a Bug](https://github.com/BrunoRap/OptiCore/issues/new?template=bug_report.md)** — GitHub Issues
+- **[Request a Feature](https://github.com/BrunoRap/OptiCore/issues/new?template=feature_request.md)** — GitHub Issues
+- **[Donate via Ko-fi](https://ko-fi.com/brunorap)** — Support development
+- **[Donate via PIX](https://www.bcb.gov.br/en/financialstability/pix_en)** — Brazil (key: 09794587737)
+
+---
+
+## 🤝 Contributing
+
+OptiCore is open source — contributions are welcome. If you find a bug, have a feature idea, or want to improve the code:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
@@ -196,6 +294,8 @@ OptiCore modifies Windows registry keys, services, and scheduled tasks. While ev
 
 **Made with ❤️ for the community — by the community**
 
-[Download](https://github.com/BrunoRap/OptiCore/releases) · [Report a Bug](https://github.com/BrunoRap/OptiCore/issues) · [Request a Feature](https://github.com/BrunoRap/OptiCore/issues) · [Donate](https://ko-fi.com/brunorap)
+[Download](https://github.com/BrunoRap/OptiCore/releases) · [Issues](https://github.com/BrunoRap/OptiCore/issues) · [Donate](https://ko-fi.com/brunorap) · [License](LICENSE)
+
+*OptiCore v1.0.0 — Built 2026-05-24 — Brazilian Top Team*
 
 </div>
