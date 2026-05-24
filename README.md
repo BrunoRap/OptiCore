@@ -4,7 +4,7 @@
 
 ### Windows Performance Optimizer for AMD Ryzen + NVIDIA RTX
 
-[![Version](https://img.shields.io/badge/version-1.0.0-c0392b?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-1.0.1-c0392b?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.1)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4?style=for-the-badge&logo=windows)](https://github.com/BrunoRap/OptiCore/releases)
 [![License](https://img.shields.io/badge/license-MIT-27ae60?style=for-the-badge)](LICENSE)
 [![Free](https://img.shields.io/badge/price-FREE-27ae60?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases)
@@ -24,12 +24,12 @@
 
 ## 🚀 Download
 
-**[Latest Release — OptiCore v1.0.0](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.0)**
+**[Latest Release — OptiCore v1.0.1](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.1)**
 
-Download **`OptiCore-Setup.exe`** (157.82 MB) — professional Windows installer, completely self-contained, zero dependencies.
+Download **`OptiCore-Setup-1.0.1.exe`** — professional Windows installer, completely self-contained, zero dependencies.
 
 ### Quick Install
-1. Download `OptiCore-Setup.exe` from the [Releases page](https://github.com/BrunoRap/OptiCore/releases)
+1. Download `OptiCore-Setup-1.0.1.exe` from the [Releases page](https://github.com/BrunoRap/OptiCore/releases)
 2. Run the installer — select language, installation location, create desktop shortcut
 3. Launch from Start menu or desktop shortcut
 4. Hardware will auto-detect on first run
@@ -84,7 +84,7 @@ OptiCore detects your exact hardware configuration and applies a tailored set of
 
 ### 📊 Before / After Report
 OptiCore measures your system **before and after** optimization using native Windows APIs — no third-party tools required. The report displays:
-- IRQs/second (interrupt frequency)
+- IRQs/second (hardware interrupt rate — correct `Interrupts/sec` counter)
 - DPCs/second (deferred procedure calls)
 - Timer resolution (actual system timer precision)
 - Running services count
@@ -92,6 +92,7 @@ OptiCore measures your system **before and after** optimization using native Win
 - **Optimization history** — cumulative list of all previously applied optimizations with timestamps
 - Overall improvement percentage
 - Hardware configuration snapshot
+- Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
 
 ### ↩️ Full Rollback Support
 Every change is backed up before being applied. You can:
@@ -162,7 +163,14 @@ If OptiCore helped your system perform better, consider supporting its developme
 
 ## 🗺️ Roadmap
 
-### Version 1.0 (Current — Released)
+### Version 1.0.1 (Current — Released)
+- [x] Fixed IRQs/sec metric — now reads correct `Interrupts/sec` Windows counter
+- [x] Added 3-second settle delay before "After" measurement
+- [x] MSI Mode note covers both gpu_msi_vectors and gpu_hd_audio_msi
+- [x] PDF export now includes full metrics table and GPU MSI contextual note
+- [x] Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
+
+### Version 1.0 (Previous)
 - [x] AMD AM4/AM5 + NVIDIA RTX support
 - [x] Fixed OC / PBO / Stock CPU mode detection
 - [x] Per-CCD Fixed OC support (dual-CCD CPU handling)
@@ -240,12 +248,28 @@ In the **Rollback** tab:
 - Restore everything to pre-OptiCore state with one click
 - Or selectively restore individual optimizations
 
-### View History
+### View History & Report
 The **Report** tab shows:
-- Current session metrics (before/after)
+- Current session metrics (before/after) with correct IRQs/sec measurement
+- GPU MSI contextual note (when applicable)
 - **Optimization history** of all previously applied changes
 - Hardware configuration details
 - Export report as PDF or TXT
+
+---
+
+## 📋 Changelog
+
+### v1.0.1 — 2026-05-24
+- **Fixed:** IRQs/sec metric now reads correct `Interrupts/sec` counter (was incorrectly reading `% Interrupt Time`)
+- **Fixed:** Added 3-second settle delay before "After" measurement to prevent race condition with driver changes
+- **Fixed:** MSI Mode contextual note now covers both `gpu_msi_vectors` and `gpu_hd_audio_msi`
+- **Fixed:** PDF export now includes full metrics table and GPU MSI contextual note
+- **Fixed:** Fallback IRQ measurement sample window increased from 1s to 3s
+- **Added:** Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
+
+### v1.0.0 — 2026-05-24
+- Initial release
 
 ---
 
@@ -269,7 +293,8 @@ Optimizations are safe for the vast majority of systems, but individual hardware
 
 ## 🔗 Links
 
-- **[Download v1.0.0](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.0)** — Get OptiCore now
+- **[Download v1.0.1](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.1)** — Get OptiCore now
+- **[All Releases](https://github.com/BrunoRap/OptiCore/releases)** — Version history
 - **[Source Code](https://github.com/BrunoRap/OptiCore)** — GitHub repository
 - **[Report a Bug](https://github.com/BrunoRap/OptiCore/issues/new?template=bug_report.md)** — GitHub Issues
 - **[Request a Feature](https://github.com/BrunoRap/OptiCore/issues/new?template=feature_request.md)** — GitHub Issues
@@ -296,6 +321,6 @@ OptiCore is open source — contributions are welcome. If you find a bug, have a
 
 [Download](https://github.com/BrunoRap/OptiCore/releases) · [Issues](https://github.com/BrunoRap/OptiCore/issues) · [Donate](https://ko-fi.com/brunorap) · [License](LICENSE)
 
-*OptiCore v1.0.0 — Built 2026-05-24 — Brazilian Top Team*
+*OptiCore v1.0.1 — Brazilian Top Team*
 
 </div>
