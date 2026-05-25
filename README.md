@@ -87,13 +87,12 @@ OptiCore detects your exact hardware and peripheral configuration and applies a 
 > All peripheral optimizations dynamically name the actual detected device. If a device type is not present, its optimization does not appear.
 
 ### 📊 Latency Benchmark
-New in v1.1.0 — dedicated benchmark tab with:
-- **DPC latency** — max and average, per driver (with xperf) or aggregate (native fallback)
-- **ISR latency** — max and average
-- **Timer jitter** — resolution stability over the measurement window
+New in v1.1.0 — dedicated benchmark tab:
+- **DPC latency** measurement
+- **Timer jitter** — resolution stability (µs)
 - **IRQs/sec and DPCs/sec** — interrupt and DPC rate
 - **History of last 5 runs** — comparison table with color coding (green = improved, red = regressed)
-- **xperf integration** — uses Windows Performance Toolkit when installed for full per-driver analysis; falls back to built-in measurement otherwise. WPT is never auto-downloaded.
+- Quick 10-second idle measurement — track improvement across BIOS changes, OC adjustments, driver updates
 
 ### 📈 Before / After Report
 - IRQs/second (correct `Interrupts/sec` counter)
@@ -146,7 +145,6 @@ Language selection on splash screen, persisted to disk, changeable anytime.
 - **RAM:** 4GB minimum (8GB+ recommended)
 - **Disk space:** ~200MB (app + backups)
 - **Dependencies:** None — completely self-contained executable
-- **Optional:** Windows Performance Toolkit (WPT) for full per-driver latency analysis in Benchmark tab
 
 ---
 
@@ -170,13 +168,12 @@ OptiCore is a **free, volunteer-built tool**. It will always be free.
 ## 🗺️ Roadmap
 
 ### Version 1.1.0 (Current — Released)
-- [x] Latency Benchmark tab with xperf integration and native fallback
+- [x] Latency Benchmark tab with native high-precision measurement
 - [x] History of last 5 benchmark runs with color-coded comparison
 - [x] Generic peripheral detection — any brand, any device
 - [x] HID polling rate optimization for any device polling above 1000Hz
 - [x] NIC optimizations applied to all detected physical adapters
 - [x] XHCI Selective Suspend applied to all detected controllers
-- [x] Per-driver DPC/ISR analysis via xperf when WPT is installed
 
 ### Version 1.0.1 (Previous)
 - [x] Fixed IRQs/sec metric (correct `Interrupts/sec` counter)
@@ -199,7 +196,6 @@ OptiCore is a **free, volunteer-built tool**. It will always be free.
 - [ ] Intel 12th gen+ support (P-core/E-core aware)
 - [ ] GPU-specific metrics (clocks, power, thermals)
 - [ ] Benchmark mode under load (not just idle)
-- [ ] xperf flame graph visualization
 
 ### Version 2.0 (Future)
 - [ ] NVIDIA GTX 10xx legacy support
@@ -243,9 +239,8 @@ Member of **Brazilian Top Team**
 ### Benchmark
 1. **Benchmark** tab → **Run Benchmark (10s)**
 2. Leave system idle during the 10-second measurement
-3. Results show DPC/ISR latency, timer jitter, IRQs/sec
+3. Results show timer jitter, IRQs/sec, DPCs/sec
 4. Run multiple times to build history — compare improvement across BIOS/OC changes
-5. Install Windows Performance Toolkit for full per-driver breakdown (optional)
 
 ### Validate
 **Validate** tab — checks all 40+ settings and shows pass/fail per item.
@@ -261,7 +256,66 @@ Member of **Brazilian Top Team**
 ## 📋 Changelog
 
 ### v1.1.0 — 2026-05-24
-- **New:** Latency Benchmark tab with xperf integration and native fallback
+- **New:** Latency Benchmark tab with native measurement
 - **New:** Benchmark history — last 5 runs with color-coded comparison table
 - **New:** Generic peripheral detection — any HID device, any brand
-- **New:** HID polling rate optimi
+- **New:** HID polling rate optimization applies to any device polling above 1000Hz
+- **New:** NIC optimizations now iterate all detected physical adapters
+- **New:** XHCI Selective Suspend applied to all detected controllers
+- **Improved:** Device-specific optimizations show the actual device name
+
+### v1.0.1 — 2026-05-24
+- **Fixed:** IRQs/sec metric now uses correct `Interrupts/sec` counter
+- **Fixed:** 3-second settle delay added before After measurement
+- **Fixed:** PDF export includes metrics table and GPU MSI note
+- **Fixed:** MSI note covers both `gpu_msi_vectors` and `gpu_hd_audio_msi`
+- **Added:** Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
+
+### v1.0.0 — 2026-05-24
+- Initial release
+
+---
+
+## ⚖️ License
+
+OptiCore is released under the **MIT License**. You are free to use, modify, and distribute this software. See [LICENSE](LICENSE) for details.
+
+---
+
+## ⚠️ Disclaimer
+
+OptiCore modifies Windows registry keys, services, and scheduled tasks. While every change is backed up and fully reversible, use this software at your own risk. The author is not responsible for any system instability that may result from its use. Always ensure you have a system backup before applying optimizations.
+
+---
+
+## 🔗 Links
+
+- **[Download v1.1.0](https://github.com/BrunoRap/OptiCore/releases/tag/v1.1.0)** — Latest release
+- **[All Releases](https://github.com/BrunoRap/OptiCore/releases)** — Version history
+- **[Source Code](https://github.com/BrunoRap/OptiCore)** — GitHub repository
+- **[Report a Bug](https://github.com/BrunoRap/OptiCore/issues/new?template=bug_report.md)** — GitHub Issues
+- **[Request a Feature](https://github.com/BrunoRap/OptiCore/issues/new?template=feature_request.md)** — GitHub Issues
+- **[Donate via Ko-fi](https://ko-fi.com/brunorap)** — Support development
+- **[Donate via PIX](https://www.bcb.gov.br/en/financialstability/pix_en)** — Brazil (key: 09794587737)
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the community — by the community**
+
+[Download](https://github.com/BrunoRap/OptiCore/releases) · [Issues](https://github.com/BrunoRap/OptiCore/issues) · [Donate](https://ko-fi.com/brunorap) · [License](LICENSE)
+
+*OptiCore v1.1.0 — Brazilian Top Team*
+
+</div>
