@@ -4,7 +4,7 @@
 
 ### Windows Performance Optimizer for AMD Ryzen + NVIDIA RTX
 
-[![Version](https://img.shields.io/badge/version-1.0.1-c0392b?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.1)
+[![Version](https://img.shields.io/badge/version-1.1.0-c0392b?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases/tag/v1.1.0)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4?style=for-the-badge&logo=windows)](https://github.com/BrunoRap/OptiCore/releases)
 [![License](https://img.shields.io/badge/license-MIT-27ae60?style=for-the-badge)](LICENSE)
 [![Free](https://img.shields.io/badge/price-FREE-27ae60?style=for-the-badge)](https://github.com/BrunoRap/OptiCore/releases)
@@ -24,12 +24,12 @@
 
 ## 🚀 Download
 
-**[Latest Release — OptiCore v1.0.1](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.1)**
+**[Latest Release — OptiCore v1.1.0](https://github.com/BrunoRap/OptiCore/releases/tag/v1.1.0)**
 
-Download **`OptiCore-Setup-1.0.1.exe`** — professional Windows installer, completely self-contained, zero dependencies.
+Download **`OptiCore-Setup-1.1.0.exe`** — professional Windows installer, completely self-contained, zero dependencies.
 
 ### Quick Install
-1. Download `OptiCore-Setup-1.0.1.exe` from the [Releases page](https://github.com/BrunoRap/OptiCore/releases)
+1. Download `OptiCore-Setup-1.1.0.exe` from the [Releases page](https://github.com/BrunoRap/OptiCore/releases)
 2. Run the installer — select language, installation location, create desktop shortcut
 3. Launch from Start menu or desktop shortcut
 4. Hardware will auto-detect on first run
@@ -46,6 +46,7 @@ Download **`OptiCore-Setup-1.0.1.exe`** — professional Windows installer, comp
 | **GPU** | NVIDIA RTX 20xx, 30xx, 40xx, 50xx series |
 | **OS** | Windows 10 / Windows 11 (64-bit) |
 | **RAM** | DDR4 / DDR5 (any speed, includes XMP/EXPO detection) |
+| **Peripherals** | Any HID keyboard/mouse (any brand), USB controllers, audio interfaces, network adapters |
 
 > ℹ️ Intel CPU and AMD GPU support is planned for future releases.
 
@@ -53,59 +54,65 @@ Download **`OptiCore-Setup-1.0.1.exe`** — professional Windows installer, comp
 
 ## ✨ What OptiCore Does
 
-OptiCore detects your exact hardware configuration and applies a tailored set of optimizations — no generic one-size-fits-all tweaks.
+OptiCore detects your exact hardware and peripheral configuration and applies a tailored set of optimizations — no generic one-size-fits-all tweaks.
 
-### 🔍 Hardware Detection
+### 🔍 Hardware & Peripheral Detection
 - CPU model, core count, CCD topology (1 CCD / 2 CCD), L3 cache, X3D detection
-- **Operating mode detection:** Fixed OC, PBO (Precision Boost Overdrive), or Stock
-  * For Fixed OC: supports all-core locking OR per-CCD configuration (e.g., CCD0: 5400MHz / CCD1: 5600MHz on dual-CCD CPUs)
-  * For PBO: detects Curve Optimizer, Scalar, Max Boost Override, PPT/TDC/EDC limits
-- GPU model, VRAM, driver version, current MSI vector count, HAGS status
+- **Operating mode:** Fixed OC, PBO (Precision Boost Overdrive), or Stock
+  * Fixed OC: supports all-core OR per-CCD configuration (e.g. CCD0: 5400MHz / CCD1: 5600MHz)
+  * PBO: Curve Optimizer, Scalar, Max Boost Override, PPT/TDC/EDC limits
+- GPU model, VRAM, driver version, MSI vector count, HAGS status
 - RAM capacity, speed (JEDEC + active XMP/EXPO), channel configuration
-- NIC model, interrupt moderation status
-- Connected USB peripherals (Razer, Logitech, Focusrite auto-detected)
-- TPM type (fTPM vs dTPM), Bitlocker status
-- VBS / HVCI state, power plan, driver versions
+- **All connected HID devices** — any keyboard/mouse (any brand) with polling rate detection
+- **All physical NICs** — model, interrupt moderation, EEE, RSC, flow control states
+- **All XHCI USB controllers** — selective suspend state per controller
+- **All audio devices** — MSI status, power management settings
+- TPM type (fTPM vs dTPM), Bitlocker status, VBS/HVCI state
 
 ### ⚙️ Optimizations Applied
 
-**49 individual optimizations across 8 categories:**
+**49 individual optimizations across 8 categories — applied generically to detected hardware:**
 
 | Category | Key Optimizations |
 |---|---|
 | **Scheduler & Timer** | Timer Resolution (15.6ms → 0.5ms), MMCSS Games Profile (Priority 6, High), SystemResponsiveness = 0 |
-| **GPU** | MSI Mode (up to 16 vectors), Interrupt Affinity, HAGS (Hardware Accelerated GPU Scheduling), NVIDIA Performance Lock |
-| **Network (NIC)** | Disable Interrupt Moderation, EEE, Nagle's Algorithm, RSC |
-| **Power Management** | Ultimate Performance plan, PROCTHROTTLEMIN lock (adapts to CPU mode), disable Power Throttling, disable Core Parking |
+| **GPU** | MSI Mode (up to 16 vectors), Interrupt Affinity, HAGS, NVIDIA Performance Lock |
+| **Network (NIC)** | Interrupt Moderation off, EEE off, Nagle off, RSC off — applied to ALL detected NICs |
+| **Power Management** | Ultimate Performance plan, PROCTHROTTLEMIN lock (adapts to CPU mode), Power Throttling off, Core Parking off |
 | **Boot & Clock** | Disable Dynamic Tick (BCD), TSC Clock Source, GlobalTimerResolutionRequests |
-| **PCIe & USB** | PCIe ASPM off, XHCI Selective Suspend off |
-| **Background** | Disable 7 latency-impacting services (WSearch, SysMain, DiagTrack, CDPSvc, etc.), disable 8 scheduled maintenance tasks |
-| **Gaming** | Disable GameDVR / Game Bar, Razer keyboard polling fix (8000Hz → 1000Hz via HID command) |
+| **PCIe & USB** | PCIe ASPM off, XHCI Selective Suspend off — applied to ALL detected XHCI controllers |
+| **Background** | Disable 7 latency-impacting services, disable 8 scheduled maintenance tasks |
+| **Peripherals** | High polling rate reduction for any HID device polling above 1000Hz (any brand) |
 
-### 📊 Before / After Report
-OptiCore measures your system **before and after** optimization using native Windows APIs — no third-party tools required. The report displays:
-- IRQs/second (hardware interrupt rate — correct `Interrupts/sec` counter)
-- DPCs/second (deferred procedure calls)
-- Timer resolution (actual system timer precision)
+> All peripheral optimizations dynamically name the actual detected device. If a device type is not present, its optimization does not appear.
+
+### 📊 Latency Benchmark
+New in v1.1.0 — dedicated benchmark tab with:
+- **DPC latency** — max and average, per driver (with xperf) or aggregate (native fallback)
+- **ISR latency** — max and average
+- **Timer jitter** — resolution stability over the measurement window
+- **IRQs/sec and DPCs/sec** — interrupt and DPC rate
+- **History of last 5 runs** — comparison table with color coding (green = improved, red = regressed)
+- **xperf integration** — uses Windows Performance Toolkit when installed for full per-driver analysis; falls back to built-in measurement otherwise. WPT is never auto-downloaded.
+
+### 📈 Before / After Report
+- IRQs/second (correct `Interrupts/sec` counter)
+- DPCs/second
+- Timer resolution
 - Running services count
-- Applied optimizations status
-- **Optimization history** — cumulative list of all previously applied optimizations with timestamps
-- Overall improvement percentage
-- Hardware configuration snapshot
+- Optimization history — all previously applied optimizations with timestamps
+- GPU MSI contextual note when applicable
+- Export as PDF or TXT
 - Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
 
 ### ↩️ Full Rollback Support
-Every change is backed up before being applied. You can:
-- **Restore all** changes at once with one click (revert to pre-OptiCore state)
+- **Restore all** changes at once (revert to pre-OptiCore state)
 - **Selectively restore** individual optimizations via checkboxes
-- **View history** of all optimizations ever applied, grouped by session
-- Backups are stored in `%APPDATA%\OptiCore\backups\` with automatic cleanup
+- Backups stored in `%APPDATA%\OptiCore\backups\`
 
 ---
 
 ## 🌐 Languages
-
-OptiCore is available in **5 languages** with full localization of all UI elements:
 
 | Language | Code | Status |
 |----------|------|--------|
@@ -126,8 +133,8 @@ Language selection on splash screen, persisted to disk, changeable anytime.
 - **Open source** — every line of code is visible in this repository (MIT license)
 - **Automatic backups** — every registry change is backed up before being applied
 - **Rollback anytime** — restore your system to its original state with one click
-- **No system files modified** — only registry keys, services, and scheduled tasks within Windows standard parameters
-- **Professional installer** — Windows-standard setup with Start menu entry, desktop shortcut, uninstaller
+- **No system files modified** — only registry keys, services, and scheduled tasks
+- **Professional installer** — Start menu entry, desktop shortcut, uninstaller
 
 ---
 
@@ -137,16 +144,15 @@ Language selection on splash screen, persisted to disk, changeable anytime.
 - **CPU:** AMD Ryzen AM4 or AM5 socket
 - **GPU:** NVIDIA RTX 20xx or newer
 - **RAM:** 4GB minimum (8GB+ recommended)
-- **Disk space:** ~200MB (60MB app + space for backups)
+- **Disk space:** ~200MB (app + backups)
 - **Dependencies:** None — completely self-contained executable
+- **Optional:** Windows Performance Toolkit (WPT) for full per-driver latency analysis in Benchmark tab
 
 ---
 
 ## ☕ Support the Project
 
 OptiCore is a **free, volunteer-built tool**. It will always be free.
-
-If OptiCore helped your system perform better, consider supporting its development:
 
 <div align="center">
 
@@ -163,21 +169,27 @@ If OptiCore helped your system perform better, consider supporting its developme
 
 ## 🗺️ Roadmap
 
-### Version 1.0.1 (Current — Released)
-- [x] Fixed IRQs/sec metric — now reads correct `Interrupts/sec` Windows counter
-- [x] Added 3-second settle delay before "After" measurement
-- [x] MSI Mode note covers both gpu_msi_vectors and gpu_hd_audio_msi
-- [x] PDF export now includes full metrics table and GPU MSI contextual note
+### Version 1.1.0 (Current — Released)
+- [x] Latency Benchmark tab with xperf integration and native fallback
+- [x] History of last 5 benchmark runs with color-coded comparison
+- [x] Generic peripheral detection — any brand, any device
+- [x] HID polling rate optimization for any device polling above 1000Hz
+- [x] NIC optimizations applied to all detected physical adapters
+- [x] XHCI Selective Suspend applied to all detected controllers
+- [x] Per-driver DPC/ISR analysis via xperf when WPT is installed
+
+### Version 1.0.1 (Previous)
+- [x] Fixed IRQs/sec metric (correct `Interrupts/sec` counter)
+- [x] Added 3-second settle delay before After measurement
+- [x] PDF export includes full metrics table and GPU MSI note
 - [x] Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
 
-### Version 1.0 (Previous)
+### Version 1.0.0
 - [x] AMD AM4/AM5 + NVIDIA RTX support
-- [x] Fixed OC / PBO / Stock CPU mode detection
-- [x] Per-CCD Fixed OC support (dual-CCD CPU handling)
-- [x] PBO parameter detection (Curve Optimizer, Scalar, Max Boost Override, PPT/TDC/EDC)
-- [x] Hardware-specific optimization decision engine
-- [x] Before/After metrics report
-- [x] Optimization history tracking
+- [x] Fixed OC / PBO / Stock CPU mode with per-CCD support
+- [x] PBO parameter detection (Curve Optimizer, Scalar, PPT/TDC/EDC)
+- [x] Hardware-specific optimization decision engine (49 optimizations)
+- [x] Before/After metrics report with optimization history
 - [x] Full rollback support (total and selective)
 - [x] Multi-language support (EN, PT, ES, FR, DE)
 - [x] Professional Windows installer
@@ -185,15 +197,16 @@ If OptiCore helped your system perform better, consider supporting its developme
 ### Version 1.5 (Planned)
 - [ ] AMD GPU (RX 6000+) support
 - [ ] Intel 12th gen+ support (P-core/E-core aware)
-- [ ] GPU-specific metrics (clock speeds, power usage, thermal data)
-- [ ] Benchmark mode (automated before/after stress testing)
+- [ ] GPU-specific metrics (clocks, power, thermals)
+- [ ] Benchmark mode under load (not just idle)
+- [ ] xperf flame graph visualization
 
 ### Version 2.0 (Future)
 - [ ] NVIDIA GTX 10xx legacy support
-- [ ] Community optimization profiles (user-submitted configs)
+- [ ] Community optimization profiles
 - [ ] Auto-update system
 - [ ] System restore point integration
-- [ ] Dark mode system tray icon with quick status
+- [ ] Dark mode system tray icon
 
 ---
 
@@ -214,113 +227,41 @@ Member of **Brazilian Top Team**
 ## 📖 Usage Guide
 
 ### First Launch
-1. App opens with splash screen (select language here)
-2. Hardware detection runs automatically
-3. Select your CPU operating mode:
-   - **Stock:** Factory default settings, no overclock
-   - **PBO:** Precision Boost Overdrive enabled (auto boost)
-   - **Fixed OC:** Manual fixed all-core (or per-CCD) overclock
-4. If Fixed OC: enter your frequency and optionally voltage
-5. Main window opens with Hardware tab showing detected configuration
+1. Splash screen opens — select language
+2. Hardware and peripheral detection runs automatically
+3. Select CPU operating mode (Stock / PBO / Fixed OC)
+4. If Fixed OC: enter frequency and optionally voltage (per-CCD for dual-CCD CPUs)
+5. Main window opens with Hardware tab
 
-### Optimize Your System
-1. Go to **Optimize** tab
-2. Click **Scan System** — OptiCore analyzes your setup
-3. Review the 49 recommended optimizations
-4. Use filters: All / High Impact / Requires Reboot / Safe Only
-5. Customize by checking/unchecking individual items
-6. Click **Apply Selected** — Windows UAC prompt appears once, then all changes apply automatically
-7. View **Report** tab for metrics and applied optimizations
+### Optimize
+1. **Optimize** tab → **Scan System**
+2. Review the recommended optimizations (named after your actual devices)
+3. Filter: All / High Impact / Requires Reboot / Safe Only
+4. Click **Apply Selected** → one UAC prompt → all changes apply automatically
+5. View **Report** tab for metrics
 
-### Validate Settings
-The **Validate** tab runs checks to confirm:
-- Timer resolution is set correctly
-- Services are disabled/enabled as configured
-- Registry keys have the correct values
-- GPU settings are optimized
-- Network settings are tuned
+### Benchmark
+1. **Benchmark** tab → **Run Benchmark (10s)**
+2. Leave system idle during the 10-second measurement
+3. Results show DPC/ISR latency, timer jitter, IRQs/sec
+4. Run multiple times to build history — compare improvement across BIOS/OC changes
+5. Install Windows Performance Toolkit for full per-driver breakdown (optional)
 
-Red/yellow indicators show what needs attention.
+### Validate
+**Validate** tab — checks all 40+ settings and shows pass/fail per item.
 
-### Rollback If Needed
-In the **Rollback** tab:
-- See all backup sessions grouped by date/time
-- Restore everything to pre-OptiCore state with one click
-- Or selectively restore individual optimizations
+### Rollback
+**Rollback** tab — restore all or selected optimizations per session.
 
-### View History & Report
-The **Report** tab shows:
-- Current session metrics (before/after) with correct IRQs/sec measurement
-- GPU MSI contextual note (when applicable)
-- **Optimization history** of all previously applied changes
-- Hardware configuration details
-- Export report as PDF or TXT
+### Report
+**Report** tab — before/after metrics, optimization history, export PDF/TXT.
 
 ---
 
 ## 📋 Changelog
 
-### v1.0.1 — 2026-05-24
-- **Fixed:** IRQs/sec metric now reads correct `Interrupts/sec` counter (was incorrectly reading `% Interrupt Time`)
-- **Fixed:** Added 3-second settle delay before "After" measurement to prevent race condition with driver changes
-- **Fixed:** MSI Mode contextual note now covers both `gpu_msi_vectors` and `gpu_hd_audio_msi`
-- **Fixed:** PDF export now includes full metrics table and GPU MSI contextual note
-- **Fixed:** Fallback IRQ measurement sample window increased from 1s to 3s
-- **Added:** Persistent metrics log at `%APPDATA%\OptiCore\logs\metrics.log`
-
-### v1.0.0 — 2026-05-24
-- Initial release
-
----
-
-## ⚖️ License
-
-OptiCore is released under the **MIT License**.
-
-You are free to use, modify, and distribute this software. Attribution is appreciated but not required. See [LICENSE](LICENSE) file for details.
-
----
-
-## ⚠️ Disclaimer
-
-OptiCore modifies Windows registry keys, services, and scheduled tasks. While every change is backed up and fully reversible, use this software at your own risk. The author is not responsible for any system instability that may result from its use.
-
-**Always ensure you have a system backup before applying optimizations.**
-
-Optimizations are safe for the vast majority of systems, but individual hardware configurations vary. If your system becomes unstable after applying optimizations, use the Rollback feature to restore previous settings.
-
----
-
-## 🔗 Links
-
-- **[Download v1.0.1](https://github.com/BrunoRap/OptiCore/releases/tag/v1.0.1)** — Get OptiCore now
-- **[All Releases](https://github.com/BrunoRap/OptiCore/releases)** — Version history
-- **[Source Code](https://github.com/BrunoRap/OptiCore)** — GitHub repository
-- **[Report a Bug](https://github.com/BrunoRap/OptiCore/issues/new?template=bug_report.md)** — GitHub Issues
-- **[Request a Feature](https://github.com/BrunoRap/OptiCore/issues/new?template=feature_request.md)** — GitHub Issues
-- **[Donate via Ko-fi](https://ko-fi.com/brunorap)** — Support development
-- **[Donate via PIX](https://www.bcb.gov.br/en/financialstability/pix_en)** — Brazil (key: 09794587737)
-
----
-
-## 🤝 Contributing
-
-OptiCore is open source — contributions are welcome. If you find a bug, have a feature idea, or want to improve the code:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-<div align="center">
-
-**Made with ❤️ for the community — by the community**
-
-[Download](https://github.com/BrunoRap/OptiCore/releases) · [Issues](https://github.com/BrunoRap/OptiCore/issues) · [Donate](https://ko-fi.com/brunorap) · [License](LICENSE)
-
-*OptiCore v1.0.1 — Brazilian Top Team*
-
-</div>
+### v1.1.0 — 2026-05-24
+- **New:** Latency Benchmark tab with xperf integration and native fallback
+- **New:** Benchmark history — last 5 runs with color-coded comparison table
+- **New:** Generic peripheral detection — any HID device, any brand
+- **New:** HID polling rate optimi
