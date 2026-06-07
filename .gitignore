@@ -1,0 +1,17 @@
+# Build output
+bin/
+obj/
+publish/
+
+# Installer output (keep setup.iss, ignore generated .exe)
+installer/output/
+
+# IDE
+.vs/
+*.user
+*.suo
+.vscode/
+
+# OS
+Thumbs.db
+desktop.ini

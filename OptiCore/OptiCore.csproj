@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <Version>1.6.0</Version>
+    <AssemblyVersion>1.6.0.0</AssemblyVersion>
+    <FileVersion>1.6.0.0</FileVersion>
+    <Product>OptiCore</Product>
+    <Company>Brazilian Top Team</Company>
+    <Copyright>© 2026 Bruno Raposo — Brazilian Top Team</Copyright>
+    <Description>Windows Performance Optimizer — hardware-agnostic, distributable</Description>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <RootNamespace>OptiCore</RootNamespace>
+    <ApplicationIcon>src\Assets\BTT.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PdfSharp" Version="6.2.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Include all XAML resource dictionaries as Resource -->
+  <ItemGroup>
+    <Resource Include="src\Assets\**\*" />
+    <Resource Include="src\Resources\*.xaml" />
+  </ItemGroup>
+
+  <!-- PowerShell scripts as content (copied to output) -->
+  <ItemGroup>
+    <Content Include="src\PowerShell\*.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

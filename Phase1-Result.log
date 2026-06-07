@@ -1,0 +1,7 @@
+﻿[OK] power_throttling (EcoQoS disabled)
+[OK] nvidia_max_perf_nvtweak (Prefer Maximum Performance)
+[OK] ai_office_copilot_disable (Office 365 Copilot blocked)
+[OK] xhci_suspend ASMedia USB 3.20 controller
+[OK] bcdedit disabledynamictick=yes
+[OK] bcdedit useplatformclock=true
+Completed at 2026-05-27 22:01:32

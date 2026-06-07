@@ -1,0 +1,73 @@
+<UserControl x:Class="OptiCore.Views.BenchmarkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="{DynamicResource Benchmark_Title}"
+                       FontFamily="Segoe UI Semibold" FontSize="20"
+                       Foreground="#e6edf3" VerticalAlignment="Center"/>
+            <Button x:Name="RunButton" Content="{DynamicResource Benchmark_RunButton}"
+                    Style="{StaticResource PrimaryButton}"
+                    HorizontalAlignment="Right" Click="RunButton_Click"/>
+        </Grid>
+
+        <!-- Progress / countdown -->
+        <Border x:Name="ProgressBanner" Grid.Row="1" Margin="0,0,0,8"
+                Visibility="Collapsed"
+                Background="#1c2128" BorderBrush="#388bfd" BorderThickness="1"
+                CornerRadius="6" Padding="12,8">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="ProgressText"
+                           FontFamily="Segoe UI" FontSize="12" Foreground="#58a6ff"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Scrollable results + history -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Idle hint -->
+                <TextBlock x:Name="IdleHint" Text="{DynamicResource Benchmark_Idle}"
+                           FontFamily="Segoe UI" FontSize="13" Foreground="#8b949e"
+                           Margin="0,8,0,0"/>
+
+                <!-- Current run metrics -->
+                <StackPanel x:Name="MetricsPanel" Visibility="Collapsed">
+                    <!-- Big numbers row -->
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                        <Grid x:Name="MetricsGrid"/>
+                    </Border>
+
+                    <!-- Per-driver table (xperf only) -->
+                    <Border x:Name="DriversCard" Style="{StaticResource CardBorder}"
+                            Margin="0,0,0,12" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource Benchmark_TopDrivers}"
+                                       FontFamily="Segoe UI Semibold" FontSize="13"
+                                       Foreground="#e6edf3" Margin="0,0,0,8"/>
+                            <Grid x:Name="DriversGrid"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- History -->
+                <StackPanel x:Name="HistoryPanel" Visibility="Collapsed">
+                    <TextBlock Text="{DynamicResource Benchmark_History}"
+                               FontFamily="Segoe UI Semibold" FontSize="14"
+                               Foreground="#e6edf3" Margin="0,4,0,8"/>
+                    <Border Style="{StaticResource CardBorder}">
+                        <Grid x:Name="HistoryGrid"/>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
