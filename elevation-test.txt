@@ -1,2 +1,0 @@
-﻿IsAdmin=True
-User=BRUNO-PC\bru_r
