@@ -120,6 +120,8 @@ Layout("X3D com cache no CCD1 (32/96)", Cpu("AMD Ryzen 9 7950X3D 16-Core Process
 Layout("9950X (32/32)",     Cpu("AMD Ryzen 9 9950X 16-Core Processor", 26, 16, false),    Topo(32, 32), 2, -1, false);
 Layout("9800X3D (96)",      Cpu("AMD Ryzen 7 9800X3D 8-Core Processor", 26, 8, true),     Topo(96),     1, -1, false);
 Layout("8700G (16, sem V-Cache)", Cpu("AMD Ryzen 7 8700G w/ Radeon 780M Graphics", 25, 8, false), Topo(16), 1, -1, false);
+var apuHybrid = Cpu("AMD Ryzen 5 8500G w/ Radeon 740M Graphics", 25, 6, false); apuHybrid.CpuIsApu = true;
+Layout("8500G (APU hibrida, 2 dominios L3)", apuHybrid, Topo(8, 8), 1, -1, false);
 Layout("5900X (32/32)",     Cpu("AMD Ryzen 9 5900X 12-Core Processor", 25, 12, false),    Topo(32, 32), 2, -1, false);
 Layout("3900X (4 x 16 por CCX)", Cpu("AMD Ryzen 9 3900X 12-Core Processor", 23, 12, false), Topo(16, 16, 16, 16), 2, -1, false);
 Layout("3700X (2 x 16 por CCX)", Cpu("AMD Ryzen 7 3700X 8-Core Processor", 23, 8, false),  Topo(16, 16), 1, -1, false);

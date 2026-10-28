@@ -202,6 +202,7 @@ namespace OptiCore.Views
             AddRow(CpuPanel, "L3 Cache", $"{p.CpuL3CacheMb} MB");
             AddRow(CpuPanel, "Socket", p.CpuSocket);
             AddRow(CpuPanel, "X3D", p.CpuIsX3D ? "Yes" : "No");
+            AddRow(CpuPanel, "APU (integrated graphics)", p.CpuIsApu ? "Yes" : "No");
 
             // OC Mode badge row with Change button
             var ocPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
@@ -307,6 +308,7 @@ namespace OptiCore.Views
         {
             GpuPanel.Children.Clear();
             AddRow(GpuPanel, "Model", p.GpuModel);
+            AddRow(GpuPanel, "Type", p.GpuIsIntegrated ? "Integrated (shares system memory)" : string.IsNullOrEmpty(p.GpuKind) ? "Unknown" : "Discrete");
             AddRow(GpuPanel, "VRAM", $"{p.GpuVramMb} MB");
             AddRow(GpuPanel, "Driver", p.GpuDriverVersion);
             AddRow(GpuPanel, "MSI Vectors", p.GpuMsiVectorCount > 0 ? p.GpuMsiVectorCount.ToString() : "Not configured");

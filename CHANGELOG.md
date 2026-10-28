@@ -6,7 +6,7 @@ Built from the recovered v1.6.0 source. The v1.6.1 patch release could not be re
 
 ### Detection
 - **Socket** is read from SMBIOS (`Win32_Processor.SocketDesignation`). The model-name fallback now recognises Ryzen 7000 / 8000 / 9000 as AM5. Ryzen 8000G APUs (8700G, 8600G, 8500G, 8300G) were being detected as AM4.
-- **APU** detection (`CpuIsApu`) for Ryzen parts with integrated Radeon graphics.
+- **APU** detection (`CpuIsApu`) for Ryzen parts with integrated Radeon graphics. APUs are always treated as a single CCD (hybrid 8500G / 8300G parts can report several L3 domains). The Hardware tab gains an "APU" row (CPU) and a "Type" row (GPU).
 - **CCD count and 3D V-Cache layout are measured** from the OS cache topology (`GetLogicalProcessorInformationEx`, L3 size per domain) instead of a model-name table. The old check `"9950X3D2".Contains("9950X3D")` reported the Ryzen 9 9950X3D2 as having V-Cache on CCD0 only; it has 96 MB on both CCDs. Zen 3 and newer use one L3 domain per CCD; Zen 1/2 derive CCDs from the core count. Name-based values remain as the fallback when the topology cannot be read.
 - Factory boost table now covers the Ryzen 8000G series. Unlisted models use 1.40x base clock as the stock-boost estimate (was 1.15x), so an unlisted stock chip no longer looks overclocked.
 

@@ -192,6 +192,16 @@ namespace OptiCore.Services
 
                 p.CpuL3DomainsMb = topo.L3.Select(d => d.SizeKb / 1024).ToArray();
 
+                // APUs are monolithic (no CCD chiplets). Hybrid Zen 4 + Zen 4c parts (8500G / 8300G) can report more than
+                // one L3 domain, which must not be read as several CCDs.
+                if (p.CpuIsApu)
+                {
+                    p.CpuCcdCount = 1;
+                    p.CacheCcdIndex = -1;
+                    p.CpuVCacheSymmetric = false;
+                    return;
+                }
+
                 int ccds = p.CpuZenFamily >= 25
                     ? topo.L3.Count
                     : (int)Math.Ceiling(Math.Max(p.CpuPhysicalCores, 1) / 8.0);
