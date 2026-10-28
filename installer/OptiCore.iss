@@ -3,8 +3,10 @@
 #define AppPublisher "Bruno Raposo - Brazilian Top Team"
 #define AppPublisherURL "https://github.com/BrunoRap/OptiCore"
 #define AppExeName "OptiCore.exe"
-#define SourceDir "C:\OptiCore\publish"
-#define IconFile "C:\OptiCore\OptiCore\src\Assets\BTT.ico"
+#ifndef SourceDir
+  #define SourceDir "..\artifacts\publish"
+#endif
+#define IconFile "..\OptiCore\src\Assets\BTT.ico"
 
 [Setup]
 AppName={#AppName}
@@ -16,7 +18,7 @@ AppUpdatesURL={#AppPublisherURL}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
-OutputDir=C:\OptiCore\installer\output
+OutputDir=..\artifacts\installer
 OutputBaseFilename=OptiCore-Setup-1.7.0
 SetupIconFile={#IconFile}
 Compression=lzma2/max
