@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>OptiCore</RootNamespace>
+    <Src>$(MSBuildThisFileDirectory)..\..\OptiCore\src</Src>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Compiles the REAL app sources (no WPF): models + detection/decision services. Run: dotnet run -c Release -->
+  <ItemGroup>
+    <Compile Include="$(Src)\Models\*.cs" />
+    <Compile Include="$(Src)\Services\HardwareClassifier.cs" />
+    <Compile Include="$(Src)\Services\CpuTopologyService.cs" />
+    <Compile Include="$(Src)\Services\HardwareDetectionService.cs" />
+    <Compile Include="$(Src)\Services\DecisionEngineService.cs" />
+  </ItemGroup>
+
+</Project>
