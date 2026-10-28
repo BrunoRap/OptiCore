@@ -135,6 +135,7 @@
     <sys:String x:Key="FixedOc_VCacheLabel">V-Cache</sys:String>
     <sys:String x:Key="FixedOc_FrequencyLabel">Fréquence</sys:String>
     <sys:String x:Key="FixedOc_X3dDualNote">Le CCD0 dispose du 3D V-Cache (optimal pour les jeux), le CCD1 atteint des fréquences plus élevées</sys:String>
+    <sys:String x:Key="FixedOc_X3dDualSymmetricNote">Les deux CCD disposent du 3D V-Cache ; garder un jeu sur un seul CCD évite quand même les sauts via l&apos;Infinity Fabric</sys:String>
     <sys:String x:Key="Category_AiPrivacy">IA et Confidentialité</sys:String>
     <sys:String x:Key="AiPrivacy_CategoryNote">Désactive les fonctionnalités d'IA de Windows. Toutes réversibles.</sys:String>
     <sys:String x:Key="Opt_AiCopilotDisable_Name">Désactiver Windows Copilot</sys:String>

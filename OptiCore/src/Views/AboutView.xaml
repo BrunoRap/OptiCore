@@ -27,7 +27,7 @@
 
             <TextBlock Text="OptiCore" FontFamily="Segoe UI Semibold" FontSize="32"
                        Foreground="#e6edf3" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-            <TextBlock Text="v1.6.0 — Windows Performance Optimizer" FontFamily="Segoe UI" FontSize="14"
+            <TextBlock Text="v1.7.0 — Windows Performance Optimizer" FontFamily="Segoe UI" FontSize="14"
                        Foreground="#8b949e" HorizontalAlignment="Center" Margin="0,0,0,8"/>
             <TextBlock Text="Developed by Bruno Raposo — Brazilian Top Team" FontFamily="Segoe UI" FontSize="13"
                        Foreground="#8b949e" HorizontalAlignment="Center" Margin="0,0,0,24"/>

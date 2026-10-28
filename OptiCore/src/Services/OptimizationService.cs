@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -163,9 +163,16 @@ namespace OptiCore.Services
                 "Write-Output '{\"success\":true,\"message\":\"GlobalTimerResolutionRequests enabled\",\"requiresReboot\":false}'",
 
             "gpu_msi_vectors" =>
-                "$pci = Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\PCI\\*\\*\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties' -ErrorAction SilentlyContinue; " +
-                "foreach ($k in $pci) { Set-ItemProperty -Path $k.PSPath -Name 'MSISupported' -Value 1 -Type DWord; Set-ItemProperty -Path $k.PSPath -Name 'MessageNumberLimit' -Value 16 -Type DWord }; " +
-                "Write-Output '{\"success\":true,\"message\":\"GPU MSI vectors set to 16\",\"requiresReboot\":true}'",
+                // Scoped to the NVIDIA display adapter. The previous glob (Enum\PCI\*\*) hit every PCI device that exposes
+                // MSI properties (USB, SATA, NVMe, chipset), not just the GPU, and overwrote vendor-defined vector limits.
+                "$gpus = @(Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\\VEN_10DE*' }); " +
+                "if ($gpus.Count -eq 0) { Write-Output '{\"success\":false,\"message\":\"No NVIDIA GPU found - nothing was changed\",\"requiresReboot\":false}'; exit 0 }; " +
+                "foreach ($g in $gpus) { " +
+                "$p = \"HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\$($g.InstanceId)\\Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties\"; " +
+                "New-Item -Path $p -Force | Out-Null; " +
+                "Set-ItemProperty -Path $p -Name 'MSISupported' -Value 1 -Type DWord; " +
+                "Set-ItemProperty -Path $p -Name 'MessageNumberLimit' -Value 16 -Type DWord }; " +
+                "Write-Output ('{\"success\":true,\"message\":\"MSI mode set on ' + $gpus.Count + ' NVIDIA GPU(s)\",\"requiresReboot\":true}')",
 
             "hags" =>
                 "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers' -Name 'HwSchMode' -Value 2 -Type DWord; " +
@@ -247,11 +254,14 @@ namespace OptiCore.Services
                 "Write-Output '{\"success\":true,\"message\":\"Razer polling set to 1000Hz via HID\",\"requiresReboot\":false}'",
 
             "gpu_hd_audio_msi" =>
-                "$hdaudio = Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\HDAUDIO' -Recurse -ErrorAction SilentlyContinue | " +
-                "Where-Object { $_.Name -like '*NVHDA*' -or $_.Name -like '*NV*' }; " +
-                "foreach ($k in $hdaudio) { $msiPath = Join-Path $k.PSPath 'Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'; " +
-                "New-Item -Path $msiPath -Force | Out-Null; Set-ItemProperty -Path $msiPath -Name 'MSISupported' -Value 1 -Type DWord -ErrorAction SilentlyContinue }; " +
-                "Write-Output '{\"success\":true,\"message\":\"NVIDIA HD Audio MSI enabled\",\"requiresReboot\":true}'",
+                // The previous filter (*NVHDA* / *NV*) matched no registry key, so the item reported success without changing
+                // anything. NVIDIA HD Audio functions are identified by VEN_10DE under Enum\HDAUDIO.
+                "$root = 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\HDAUDIO'; " +
+                "$inst = @(Get-ChildItem $root -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -like '*VEN_10DE*' } | ForEach-Object { Get-ChildItem $_.PSPath -ErrorAction SilentlyContinue }); " +
+                "if ($inst.Count -eq 0) { Write-Output '{\"success\":false,\"message\":\"No NVIDIA HD Audio device found - nothing was changed\",\"requiresReboot\":false}'; exit 0 }; " +
+                "foreach ($k in $inst) { $msiPath = Join-Path $k.PSPath 'Device Parameters\\Interrupt Management\\MessageSignaledInterruptProperties'; " +
+                "New-Item -Path $msiPath -Force | Out-Null; Set-ItemProperty -Path $msiPath -Name 'MSISupported' -Value 1 -Type DWord }; " +
+                "Write-Output ('{\"success\":true,\"message\":\"MSI enabled on ' + $inst.Count + ' NVIDIA HD Audio device(s)\",\"requiresReboot\":true}')",
 
             "seclogon_disable" =>
                 "Set-Service seclogon -StartupType Disabled -ErrorAction SilentlyContinue; Stop-Service seclogon -Force -ErrorAction SilentlyContinue; " +
@@ -321,11 +331,6 @@ namespace OptiCore.Services
                 "New-Item -Path 'HKCU:\\Software\\Policies\\Microsoft\\office\\16.0\\common' -Force | Out-Null; " +
                 "Set-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\office\\16.0\\common' -Name 'copilotmode' -Value 0 -Type DWord -Force; " +
                 "Write-Output '{\"success\":true,\"message\":\"Copilot in Microsoft Office disabled.\",\"requiresReboot\":false}'",
-
-            "gpu_interrupt_affinity" =>
-                $"$core = {profile.CpuPhysicalCores / 2}; $affinity = [math]::Pow(2, $core); " +
-                "$gpuDevices = Get-PnpDevice | Where-Object { $_.InstanceId -like 'PCI\\VEN_10DE*' }; " +
-                "Write-Output '{\"success\":true,\"message\":\"GPU interrupt affinity configured\",\"requiresReboot\":true}'",
 
             "win32_priority_separation" =>
                 "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl' -Name 'Win32PrioritySeparation' -Value 38 -Type DWord -Force; " +

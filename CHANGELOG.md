@@ -1,6 +1,30 @@
 # OptiCore Changelog
 
-## v1.7.0 — 2026-06-07
+## v1.7.0 — 2026-10-28
+
+Built from the recovered v1.6.0 source. The v1.6.1 patch release could not be recovered from version control, so anything it changed is not part of this build.
+
+### Detection
+- **Socket** is read from SMBIOS (`Win32_Processor.SocketDesignation`). The model-name fallback now recognises Ryzen 7000 / 8000 / 9000 as AM5. Ryzen 8000G APUs (8700G, 8600G, 8500G, 8300G) were being detected as AM4.
+- **APU** detection (`CpuIsApu`) for Ryzen parts with integrated Radeon graphics.
+- **CCD count and 3D V-Cache layout are measured** from the OS cache topology (`GetLogicalProcessorInformationEx`, L3 size per domain) instead of a model-name table. The old check `"9950X3D2".Contains("9950X3D")` reported the Ryzen 9 9950X3D2 as having V-Cache on CCD0 only; it has 96 MB on both CCDs. Zen 3 and newer use one L3 domain per CCD; Zen 1/2 derive CCDs from the core count. Name-based values remain as the fallback when the topology cannot be read.
+- Factory boost table now covers the Ryzen 8000G series. Unlisted models use 1.40x base clock as the stock-boost estimate (was 1.15x), so an unlisted stock chip no longer looks overclocked.
+
+### GPU scope
+- NVIDIA (any generation), AMD Radeon and integrated graphics are now **Supported**. Adapters are classified from the PCI vendor ID and name; when several are present the primary GPU is NVIDIA dGPU > AMD dGPU > Intel dGPU > integrated.
+- NVIDIA-specific tuning still requires RTX 30-series or newer. On integrated graphics the GPU tweaks are skipped and every CPU, OS, network, service and privacy optimization still applies. Intel Arc stays out of scope.
+- `gpu_msi_vectors` is marked not applicable on non-NVIDIA GPUs, with the reason shown.
+
+### Fixes
+- `gpu_msi_vectors` wrote `MSISupported` / `MessageNumberLimit` to every PCI device that exposes MSI properties (USB, SATA, NVMe, chipset), not only the GPU, overwriting vendor-defined vector limits. It is now limited to the NVIDIA display adapter(s) and reports failure when none is found.
+- `gpu_hd_audio_msi` matched no registry key (`*NVHDA*` / `*NV*`), so it reported success without changing anything. It now targets HD Audio functions with `VEN_10DE`.
+- `gpu_interrupt_affinity` computed a core and a device list but never wrote anything while reporting success. Removed.
+- The CPU mode dialog no longer says "CCD0 has V-Cache, CCD1 reaches higher clocks" on CPUs where both CCDs carry V-Cache (5 languages).
+- The two changelog entries below that were headed v1.7.0 and v1.6.0 describe the same release; both are now v1.6.0.
+
+### Known limitations
+- The overclock-mode suggestion compares a single clock sample with the factory boost clock, so a fixed all-core overclock at or below the boost clock is suggested as "Stock". The mode is always confirmed by the user.
+## v1.6.0 — 2026-06-07 — Compatibility Gate
 
 ### Compatibility Gate (Passo 0)
 
@@ -56,7 +80,7 @@ Runs at startup, before any optimization is offered. Classifies each component a
 
 ---
 
-## v1.6.0 — 2026-06-07
+## v1.6.0 — 2026-06-07 — Defender & Bloatware
 
 ### New category: Defender & Bloatware (13 items)
 

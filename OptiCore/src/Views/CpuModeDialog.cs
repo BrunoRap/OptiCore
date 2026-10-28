@@ -249,7 +249,7 @@ namespace OptiCore.Views
                     };
                     x3dNote.Child = new TextBlock
                     {
-                        Text = Loc("FixedOc_X3dDualNote",
+                        Text = _profile.CpuVCacheSymmetric ? Loc("FixedOc_X3dDualSymmetricNote", "Both CCDs carry 3D V-Cache; pinning a game to one CCD still avoids Infinity Fabric hops") : Loc("FixedOc_X3dDualNote",
                             "CCD0 has 3D V-Cache (best for gaming), CCD1 reaches higher clocks"),
                         FontSize = 11, Foreground = new SolidColorBrush(Color.FromRgb(100, 200, 130)),
                         TextWrapping = TextWrapping.Wrap
@@ -270,7 +270,7 @@ namespace OptiCore.Views
             if (isDualCcd)
             {
                 string ccd1Label = Loc("FixedOc_Ccd1Freq", "CCD1 frequency (MHz)");
-                if (isX3dDual && _profile.CacheCcdIndex == 0)
+                if (isX3dDual && _profile.CacheCcdIndex == 0 && !_profile.CpuVCacheSymmetric)
                     ccd1Label += $"  — {Loc("FixedOc_FrequencyLabel", "Frequency")}";
                 _perCcdInputs.Children.Add(LabelText(ccd1Label, top: 8));
                 _perCcdInputs.Children.Add(_freqCcd1Input);
@@ -313,7 +313,7 @@ namespace OptiCore.Views
                 if (_isPerCcd)
                 {
                     string ccd0Label = Loc("FixedOc_Ccd0Freq", "CCD0 frequency (MHz)");
-                    if (_profile.CpuCcdCount >= 2 && _profile.CacheCcdIndex == 0)
+                    if (_profile.CpuCcdCount >= 2 && _profile.CacheCcdIndex == 0 && !_profile.CpuVCacheSymmetric)
                         ccd0Label += $"  — {Loc("FixedOc_VCacheLabel", "V-Cache")}";
                     _freqLabel.Text = ccd0Label;
                 }

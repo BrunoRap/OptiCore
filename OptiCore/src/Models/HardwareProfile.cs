@@ -33,6 +33,9 @@ namespace OptiCore.Models
         public double FixedOcFrequencyCcd1Mhz { get; set; } = 0;  // CCD1 freq when FixedOcPerCcd
         public int CpuPreferredCcd { get; set; } = 0;              // 0-indexed CCD with preferred cores
         public int CacheCcdIndex { get; set; } = -1;              // which CCD carries 3D V-Cache (0/1); -1 = N/A
+        public bool CpuVCacheSymmetric { get; set; }               // true = every CCD carries 3D V-Cache (e.g. 9950X3D2)
+        public int[] CpuL3DomainsMb { get; set; } = System.Array.Empty<int>(); // measured L3 per domain, CCD0 first
+        public bool CpuIsApu { get; set; }                         // Ryzen with integrated Radeon graphics (e.g. 8700G)
 
         // PBO parameters (informational — not applied by OptiCore, used to tailor recommendations)
         public string PboCoMode { get; set; } = "AllCore";         // "AllCore", "PerCCD", "PerCore"
@@ -80,6 +83,8 @@ namespace OptiCore.Models
 
         // GPU vendor agnosticism
         public bool HasDedicatedGpu { get; set; }
+        public bool GpuIsIntegrated { get; set; }        // iGPU shares system memory (APU)
+        public string GpuKind { get; set; } = "";        // NvidiaDiscrete / AmdDiscrete / IntelDiscrete / Integrated
         public string GpuPciVendorId { get; set; } = ""; // "10DE"=NVIDIA, "1002"=AMD, "8086"=Intel
 
         // Compatibility gate — CPU

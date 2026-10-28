@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Win32;
@@ -210,6 +210,11 @@ namespace OptiCore.Services
             if (profile.HasDedicatedGpu || profile.ManualOverrideEnabled)
             {
                 bool gpuItemApplicable = gpuSupported;
+                // MSI vector tuning is only implemented and validated for NVIDIA adapters.
+                bool gpuIsNvidia = profile.GpuManufacturer == "NVIDIA";
+                bool msiApplicable = gpuItemApplicable && gpuIsNvidia;
+                string msiSkipReason = !gpuItemApplicable ? gpuSkipReason
+                    : $"MSI vector tuning is only applied to NVIDIA GPUs; it is not validated on {(string.IsNullOrEmpty(profile.GpuManufacturer) ? "this" : profile.GpuManufacturer)} GPUs.";
                 list.Add(new OptimizationItem
                 {
                     Id = "gpu_msi_vectors",
@@ -217,49 +222,18 @@ namespace OptiCore.Services
                     Description = $"Enables Message Signaled Interrupts for the {(string.IsNullOrEmpty(profile.GpuManufacturer) || profile.GpuManufacturer == "Unknown" ? "detected" : profile.GpuManufacturer)} GPU with 16 vectors, reducing interrupt latency.",
                     Category = "GPU",
                     ImpactLevel = ImpactLevel.High,
-                    IsApplicable = gpuItemApplicable,
-                    SkipReason = gpuItemApplicable ? "" : gpuSkipReason,
+                    IsApplicable = msiApplicable,
+                    SkipReason = msiApplicable ? "" : msiSkipReason,
                     IsSafe = true,
                     RequiresAdmin = true,
                     RequiresReboot = true,
                     CurrentState = profile.GpuMsiVectorCount > 0 ? $"{profile.GpuMsiVectorCount} vectors" : "Not configured",
                     TargetState = "16 vectors",
-                    IsSelected = gpuItemApplicable
+                    IsSelected = msiApplicable
                 });
 
-                if (profile.CpuPhysicalCores >= 4 || profile.ManualOverrideEnabled)
-                {
-                    int coreCount = profile.CpuPhysicalCores > 0 ? profile.CpuPhysicalCores : 8;
-                    int affinityCore = coreCount / 2;
-                    string affinityDesc;
-                    if (profile.CpuCcdCount >= 2)
-                    {
-                        string ccdContext = profile.CacheCcdIndex == 0
-                            ? $"Core {affinityCore} sits on CCD1 (frequency CCD), keeping CCD0 (3D V-Cache) free for game threads."
-                            : $"Core {affinityCore} sits on the secondary CCD, leaving the primary CCD free for game threads.";
-                        affinityDesc = $"Pins GPU interrupts to Core {affinityCore} on your dual-CCD CPU. {ccdContext}";
-                    }
-                    else
-                    {
-                        affinityDesc = $"Pins GPU interrupts to Core {affinityCore} — calculated from your {coreCount}-core CPU, never a fixed value.";
-                    }
-                    list.Add(new OptimizationItem
-                    {
-                        Id = "gpu_interrupt_affinity",
-                        Name = "GPU Interrupt Affinity (dedicated core)",
-                        Description = affinityDesc,
-                        Category = "GPU",
-                        ImpactLevel = ImpactLevel.High,
-                        IsApplicable = gpuItemApplicable,
-                        SkipReason = gpuItemApplicable ? "" : gpuSkipReason,
-                        IsSafe = true,
-                        RequiresAdmin = true,
-                        RequiresReboot = true,
-                        CurrentState = "Default (all cores)",
-                        TargetState = $"Core {affinityCore}",
-                        IsSelected = gpuItemApplicable
-                    });
-                }
+                // "gpu_interrupt_affinity" was removed: its script computed a core and a device list but never wrote
+                // anything, so it reported success while changing nothing.
 
                 list.Add(new OptimizationItem
                 {

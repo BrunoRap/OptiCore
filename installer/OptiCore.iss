@@ -1,5 +1,5 @@
 #define AppName "OptiCore"
-#define AppVersion "1.6.0"
+#define AppVersion "1.7.0"
 #define AppPublisher "Bruno Raposo - Brazilian Top Team"
 #define AppPublisherURL "https://github.com/BrunoRap/OptiCore"
 #define AppExeName "OptiCore.exe"
@@ -17,7 +17,7 @@ DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
 OutputDir=C:\OptiCore\installer\output
-OutputBaseFilename=OptiCore-Setup-1.6.0
+OutputBaseFilename=OptiCore-Setup-1.7.0
 SetupIconFile={#IconFile}
 Compression=lzma2/max
 SolidCompression=yes
@@ -25,8 +25,8 @@ WizardStyle=modern
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-VersionInfoVersion=1.6.0.0
-VersionInfoProductVersion=1.6.0
+VersionInfoVersion=1.7.0.0
+VersionInfoProductVersion=1.7.0
 DisableProgramGroupPage=no
 LicenseFile=
 ; Keep the wizard clean — no license page needed for a free app

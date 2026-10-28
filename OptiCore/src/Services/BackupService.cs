@@ -24,7 +24,6 @@ namespace OptiCore.Services
             ["bcdedit_platformclock"] = [],
             ["global_timer_requests"] = [@"HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel"],
             ["gpu_msi_vectors"] = [@"HKLM\SYSTEM\CurrentControlSet\Enum\PCI"],
-            ["gpu_interrupt_affinity"] = [@"HKLM\SYSTEM\CurrentControlSet\Enum\PCI"],
             ["hags"] = [@"HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"],
             ["nvidia_perf_level"] = [@"HKLM\SOFTWARE\NVIDIA Corporation\Global\NvCplApi\Policies"],
             ["nic_interrupt_mod"] = [@"HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"],

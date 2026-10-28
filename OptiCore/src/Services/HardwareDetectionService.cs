@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,10 +29,12 @@ namespace OptiCore.Services
         {
             try
             {
-                using var searcher = new ManagementObjectSearcher("SELECT Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,L3CacheSize FROM Win32_Processor");
+                string smbiosSocket = "";
+                using var searcher = new ManagementObjectSearcher("SELECT Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,L3CacheSize,SocketDesignation FROM Win32_Processor");
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     p.CpuModel = obj["Name"]?.ToString()?.Trim() ?? "";
+                    smbiosSocket = obj["SocketDesignation"]?.ToString() ?? "";
                     p.CpuPhysicalCores = Convert.ToInt32(obj["NumberOfCores"] ?? 1);
                     p.CpuLogicalCores = Convert.ToInt32(obj["NumberOfLogicalProcessors"] ?? 1);
                     p.CpuBaseClockMhz = Convert.ToDouble(obj["MaxClockSpeed"] ?? 0);
@@ -44,21 +46,18 @@ namespace OptiCore.Services
                     : p.CpuModel.Contains("Intel", StringComparison.OrdinalIgnoreCase) ? "Intel" : "Unknown";
 
                 p.CpuIsX3D = p.CpuModel.Contains("X3D", StringComparison.OrdinalIgnoreCase);
-                p.CpuIsAM5 = Regex.IsMatch(p.CpuModel, @"Ryzen\s+\d+\s+[79](?:9|8|7)\d{2}", RegexOptions.IgnoreCase)
-                    || p.CpuModel.Contains("9950X", StringComparison.OrdinalIgnoreCase)
-                    || p.CpuModel.Contains("9900X", StringComparison.OrdinalIgnoreCase)
-                    || p.CpuModel.Contains("9800X", StringComparison.OrdinalIgnoreCase)
-                    || p.CpuModel.Contains("9700X", StringComparison.OrdinalIgnoreCase)
-                    || p.CpuModel.Contains("9600X", StringComparison.OrdinalIgnoreCase)
-                    || Regex.IsMatch(p.CpuModel, @"Ryzen\s+\d\s+7\d{3}", RegexOptions.IgnoreCase);
-                p.CpuIsAM4 = p.CpuManufacturer == "AMD" && !p.CpuIsAM5
-                    && Regex.IsMatch(p.CpuModel, @"Ryzen", RegexOptions.IgnoreCase);
-                p.CpuSocket = p.CpuIsAM5 ? "AM5" : p.CpuIsAM4 ? "AM4" : "Unknown";
+                // Socket comes from SMBIOS (Win32_Processor.SocketDesignation) when usable; the model-name
+                // fallback knows 7000/8000/9000 as AM5, so 8000G APUs (e.g. 8700G) are no longer read as AM4.
+                p.CpuSocket = HardwareClassifier.InferSocket(p.CpuModel, smbiosSocket);
+                p.CpuIsAM5 = p.CpuSocket == "AM5";
+                p.CpuIsAM4 = p.CpuSocket == "AM4";
+                p.CpuIsApu = HardwareClassifier.IsApu(p.CpuModel);
                 p.CpuCcdCount = DetectCcdCount(p.CpuModel, p.CpuPhysicalCores);
                 p.CpuPreferredCcd = DetectPreferredCcd(p.CpuModel, p.CpuCcdCount);
                 p.CacheCcdIndex = DetectCacheCcdIndex(p.CpuModel, p.CpuCcdCount);
                 p.IsSupportedCpu = p.CpuManufacturer == "AMD" && (p.CpuIsAM4 || p.CpuIsAM5);
                 EvaluateCpuCompat(p);
+                ApplyMeasuredTopology(p);
                 SuggestOcMode(p);
             }
             catch { /* graceful fallback — CpuCompatStatus stays Unknown */ }
@@ -178,7 +177,59 @@ namespace OptiCore.Services
             }
         }
 
+        // Overrides the model-name guesses with what the OS reports about the real cache layout.
+        // Zen 3 and newer: one L3 domain per CCD. Zen 1/2 (family 23): L3 is per CCX, and a CCD holds at most 8 cores.
+        // The model name is only used to decide whether the part is an X3D at all; the layout comes from measured L3 sizes.
+        internal static void ApplyMeasuredTopology(HardwareProfile p) => ApplyMeasuredTopology(p, CpuTopologyService.Read());
+
+        // Overload with the topology passed in, so every layout (single CCD, asymmetric X3D, dual V-Cache) can be tested.
+        internal static void ApplyMeasuredTopology(HardwareProfile p, CpuTopology topo)
+        {
+            try
+            {
+                // topology is supplied by the caller
+                if (!topo.Valid) return;   // keep the name-based fallback
+
+                p.CpuL3DomainsMb = topo.L3.Select(d => d.SizeKb / 1024).ToArray();
+
+                int ccds = p.CpuZenFamily >= 25
+                    ? topo.L3.Count
+                    : (int)Math.Ceiling(Math.Max(p.CpuPhysicalCores, 1) / 8.0);
+                if (ccds >= 1) p.CpuCcdCount = ccds;
+
+                if (!p.CpuIsX3D)
+                {
+                    p.CacheCcdIndex = -1;
+                    p.CpuVCacheSymmetric = false;
+                }
+                else if (p.CpuZenFamily >= 25 && topo.L3.Count >= 2)
+                {
+                    int max = topo.L3.Max(d => d.SizeKb);
+                    bool asymmetric = topo.L3.Any(d => d.SizeKb != max);
+                    if (asymmetric)
+                    {
+                        // 7950X3D / 9950X3D: the CCD with the largest L3 carries the V-Cache.
+                        p.CacheCcdIndex = topo.L3.FindIndex(d => d.SizeKb == max);
+                        p.CpuVCacheSymmetric = false;
+                    }
+                    else
+                    {
+                        // 9950X3D2: identical L3 on every CCD, V-Cache on all of them.
+                        p.CacheCcdIndex = 0;
+                        p.CpuVCacheSymmetric = true;
+                    }
+                    p.CpuPreferredCcd = p.CacheCcdIndex;
+                }
+                else if (topo.L3.Count == 1)
+                {
+                    p.CacheCcdIndex = -1;   // single-CCD X3D (e.g. 7800X3D, 8700G has no V-Cache at all)
+                    p.CpuVCacheSymmetric = false;
+                }
+            }
+            catch { /* graceful fallback — name-based values stay */ }
+        }
         // Determines CCD count from physical core count, cross-checked against known model names.
+        // Fallback only — ApplyMeasuredTopology overrides this whenever the OS reports a usable cache topology.
         private static int DetectCcdCount(string model, int physicalCores)
         {
             // TEMPORARY DEBUG: uncomment the next line to force 2-CCD UI for visual testing.
@@ -230,8 +281,8 @@ namespace OptiCore.Services
             return -1;
         }
 
-        // Embedded factory-spec boost table (AM4 Ryzen 3000/5000, AM5 Ryzen 7000/9000). No internet required.
-        private static double GetFactoryBoostMhz(string cpuModel, double wmiFallbackMhz)
+        // Embedded factory-spec boost table (AM4 Ryzen 3000/5000, AM5 Ryzen 7000/8000G/9000). No internet required.
+        internal static double GetFactoryBoostMhz(string cpuModel, double wmiFallbackMhz)
         {
             var table = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
             {
@@ -249,6 +300,8 @@ namespace OptiCore.Services
                 ["Ryzen 7 7700X"] = 5400, ["Ryzen 7 7700"] = 5300, ["Ryzen 7 7800X3D"] = 5000,
                 ["Ryzen 9 7900X"] = 5600, ["Ryzen 9 7900"] = 5400,
                 ["Ryzen 9 7950X3D"] = 5700, ["Ryzen 9 7950X"] = 5700,
+                // AM5 — Ryzen 8000G APUs (Zen 4 + RDNA3)
+                ["Ryzen 7 8700G"] = 5100, ["Ryzen 5 8600G"] = 5000, ["Ryzen 5 8500G"] = 5000, ["Ryzen 3 8300G"] = 4900,
                 // AM5 — Ryzen 9000
                 ["Ryzen 5 9600X"] = 5400, ["Ryzen 5 9600"] = 5300,
                 ["Ryzen 7 9700X"] = 5500, ["Ryzen 7 9800X3D"] = 5700,
@@ -261,50 +314,57 @@ namespace OptiCore.Services
                     return kv.Value;
             }
 
-            // Unknown model — use WMI MaxClockSpeed (typically base clock) with headroom for boost
-            return wmiFallbackMhz > 0 ? wmiFallbackMhz * 1.15 : 4000;
+            // Unknown model — use WMI MaxClockSpeed (typically base clock) with headroom for boost.
+            // Desktop Ryzen boost/base ratios run from ~1.17 to ~1.39, so 1.15 made unlisted stock chips look overclocked.
+            return wmiFallbackMhz > 0 ? wmiFallbackMhz * 1.40 : 4000;
         }
 
         private void DetectGpu(HardwareProfile p)
         {
             try
             {
-                using var searcher = new ManagementObjectSearcher("SELECT Name,AdapterRAM,DriverVersion FROM Win32_VideoController WHERE PNPDeviceID LIKE 'PCI%'");
+                // Pick "the" GPU when several adapters exist (typical APU: iGPU + discrete card):
+                // NVIDIA discrete > AMD discrete > Intel discrete > integrated.
+                var adapters = new List<(string Name, string Driver, long VramMb, string Pnp, GpuClass Kind)>();
+                using var searcher = new ManagementObjectSearcher("SELECT Name,AdapterRAM,DriverVersion,PNPDeviceID FROM Win32_VideoController WHERE PNPDeviceID LIKE 'PCI%'");
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     var name = obj["Name"]?.ToString() ?? "";
-                    if (name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || p.GpuModel == "")
-                    {
-                        p.GpuModel = name;
-                        p.GpuDriverVersion = obj["DriverVersion"]?.ToString() ?? "";
-                        p.GpuVramMb = Convert.ToInt64(obj["AdapterRAM"] ?? 0) / (1024 * 1024);
-                        p.GpuManufacturer = name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ? "NVIDIA"
-                            : name.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "AMD"
-                            : name.Contains("Intel", StringComparison.OrdinalIgnoreCase) ? "Intel" : "Unknown";
-                        p.GpuPciVendorId = p.GpuManufacturer switch {
-                            "NVIDIA" => "10DE",
-                            "AMD"    => "1002",
-                            "Intel"  => "8086",
-                            _        => ""
-                        };
-                        // Parse RTX generation: "RTX 3080" → '3' → gen 3; "RTX 50 Laptop GPU" → '5' → gen 5
-                var rtxMatch = Regex.Match(name, @"\bRTX\s+(\d+)", RegexOptions.IgnoreCase);
-                if (rtxMatch.Success && rtxMatch.Groups[1].Value.Length > 0)
-                {
-                    p.GpuRtxGeneration = rtxMatch.Groups[1].Value[0] - '0'; // first digit = generation
-                    p.GpuIsRtx30Plus   = p.GpuRtxGeneration >= 3;
+                    if (name == "") continue;
+                    var pnp = obj["PNPDeviceID"]?.ToString() ?? "";
+                    adapters.Add((name,
+                        obj["DriverVersion"]?.ToString() ?? "",
+                        Convert.ToInt64(obj["AdapterRAM"] ?? 0) / (1024 * 1024),
+                        pnp,
+                        HardwareClassifier.ClassifyGpu(name, pnp)));
                 }
-                p.GpuIsNvidiaRtx = p.GpuManufacturer == "NVIDIA" && p.GpuIsRtx30Plus;
 
-                // Any discrete GPU that is not integrated Intel graphics counts as dedicated
-                bool isIntegratedIntel = p.GpuManufacturer == "Intel"
-                            && (name.Contains("UHD", StringComparison.OrdinalIgnoreCase)
-                                || name.Contains("HD Graphics", StringComparison.OrdinalIgnoreCase)
-                                || name.Contains("Iris", StringComparison.OrdinalIgnoreCase));
-                        p.HasDedicatedGpu = !isIntegratedIntel && p.GpuModel != "";
-                        p.IsSupportedGpu = p.GpuIsNvidiaRtx;
-                        if (p.GpuManufacturer == "NVIDIA") break;
+                if (adapters.Count > 0)
+                {
+                    var best = adapters.OrderByDescending(a => HardwareClassifier.Rank(a.Kind)).First();
+                    p.GpuModel = best.Name;
+                    p.GpuDriverVersion = best.Driver;
+                    p.GpuVramMb = best.VramMb;
+                    p.GpuKind = best.Kind.ToString();
+                    p.GpuPciVendorId = HardwareClassifier.VendorId(best.Name, best.Pnp);
+                    p.GpuManufacturer = p.GpuPciVendorId switch
+                    {
+                        "10DE" => "NVIDIA",
+                        "1002" => "AMD",
+                        "8086" => "Intel",
+                        _      => "Unknown"
+                    };
+                    p.GpuIsIntegrated = best.Kind == GpuClass.Integrated;
+                    p.HasDedicatedGpu = !p.GpuIsIntegrated;
+
+                    // Parse RTX generation: "RTX 3080" → '3' → gen 3; "RTX 50 Laptop GPU" → '5' → gen 5
+                    var rtxMatch = Regex.Match(best.Name, @"\bRTX\s+(\d+)", RegexOptions.IgnoreCase);
+                    if (p.GpuManufacturer == "NVIDIA" && rtxMatch.Success && rtxMatch.Groups[1].Value.Length > 0)
+                    {
+                        p.GpuRtxGeneration = rtxMatch.Groups[1].Value[0] - '0'; // first digit = generation
+                        p.GpuIsRtx30Plus   = p.GpuRtxGeneration >= 3;
                     }
+                    p.GpuIsNvidiaRtx = p.GpuManufacturer == "NVIDIA" && p.GpuIsRtx30Plus;
                 }
 
                 // MSI vector count
@@ -317,6 +377,7 @@ namespace OptiCore.Services
             catch { }
 
             EvaluateGpuCompat(p);
+            p.IsSupportedGpu = p.GpuCompatStatus == CompatibilityStatus.Supported;
         }
 
         private static void EvaluateGpuCompat(HardwareProfile p)
@@ -328,29 +389,36 @@ namespace OptiCore.Services
                 return;
             }
 
-            if (p.GpuManufacturer != "NVIDIA")
+            switch (p.GpuKind)
             {
-                p.GpuCompatStatus = CompatibilityStatus.OutOfScope;
-                p.GpuCompatReason = string.IsNullOrEmpty(p.GpuManufacturer) || p.GpuManufacturer == "Unknown"
-                    ? $"GPU \"{p.GpuModel}\" — manufacturer not identified as NVIDIA."
-                    : $"GPU manufacturer is {p.GpuManufacturer} — requires NVIDIA.";
-                return;
-            }
+                case nameof(GpuClass.NvidiaDiscrete):
+                    p.GpuCompatStatus = CompatibilityStatus.Supported;
+                    p.GpuCompatReason = p.GpuIsRtx30Plus
+                        ? $"{p.GpuModel} — NVIDIA RTX {p.GpuRtxGeneration}0-series — fully supported."
+                        : $"{p.GpuModel} — NVIDIA GPU supported. NVIDIA-specific tuning (max-performance lock, HD Audio MSI) requires an RTX 30-series or newer.";
+                    return;
 
-            if (!p.GpuIsRtx30Plus)
-            {
-                string genNote = p.GpuRtxGeneration > 0
-                    ? $"RTX {p.GpuRtxGeneration}0-series detected — requires RTX 30-series or newer."
-                    : "No RTX generation identified in GPU name — requires RTX 30xx / 40xx / 50xx.";
-                p.GpuCompatStatus = CompatibilityStatus.OutOfScope;
-                p.GpuCompatReason = $"{p.GpuModel}: {genNote}";
-                return;
-            }
+                case nameof(GpuClass.AmdDiscrete):
+                    p.GpuCompatStatus = CompatibilityStatus.Supported;
+                    p.GpuCompatReason = $"{p.GpuModel} — AMD Radeon discrete GPU supported. Vendor-neutral GPU tweaks apply; NVIDIA-specific ones are skipped.";
+                    return;
 
-            p.GpuCompatStatus = CompatibilityStatus.Supported;
-            p.GpuCompatReason = $"{p.GpuModel} — NVIDIA RTX {p.GpuRtxGeneration}0-series — fully supported.";
+                case nameof(GpuClass.Integrated):
+                    p.GpuCompatStatus = CompatibilityStatus.Supported;
+                    p.GpuCompatReason = $"{p.GpuModel} — integrated GPU (shares system memory). GPU-specific tweaks are skipped; CPU, OS, network and service optimizations apply.";
+                    return;
+
+                case nameof(GpuClass.IntelDiscrete):
+                    p.GpuCompatStatus = CompatibilityStatus.OutOfScope;
+                    p.GpuCompatReason = $"{p.GpuModel} — Intel Arc is not validated yet.";
+                    return;
+
+                default:
+                    p.GpuCompatStatus = CompatibilityStatus.OutOfScope;
+                    p.GpuCompatReason = $"GPU \"{p.GpuModel}\" — manufacturer not identified (expected NVIDIA, AMD or an integrated GPU).";
+                    return;
+            }
         }
-
         private int ReadGpuMsiVectors()
         {
             try
